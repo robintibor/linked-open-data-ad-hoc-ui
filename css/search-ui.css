@@ -1,0 +1,36 @@
+.resultTitle{
+    font-size: 20px;
+    color: blue;
+    margin-bottom: 50px;
+}
+
+.resultScore {
+    color:darkgrey;
+}
+
+.mark {
+    color: green;
+}
+
+.resultScore {
+    float: right;
+}
+
+.fieldName {
+    color: #66F;
+    margin-right: 10px;
+}
+
+.oneResult {
+    width: 70%;
+    margin-bottom:25px;
+    background-color: #FFC;
+}
+
+.resultHeader {
+    height: 2em;
+}
+
+.snippetText {
+    background-color: #FFD;
+}

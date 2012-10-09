@@ -1,12 +1,20 @@
-queryServer = (queryString) ->
+canGetMoreResults = false
+currentSearchOffset = 0
+currentSearch =  ""
+
+queryServer = () ->
     $.ajax(
         {url: 'http://metropolis.informatik.uni-freiburg.de:28451/',
-        data: {query: queryString, callback: "test"},
+        data: {query: currentSearch, offset: currentSearchOffset, callback: "test"},
         dataType: 'jsonp',
         success: (data) ->
-            $('#resultDiv').html("<pre> #{JSON.stringify(data, '<br/>', '\t')} </pre>")
             resultHTML = createResultHTML(data)
             addResultHTMLToResultDiv(resultHTML)
+            if (data.documents.length > 0)
+                currentSearchOffset += data.documents.length
+                getMoreResultsOnScrollDown()
+            else
+                canGetMoreResults = false
         }
     )
 
@@ -33,9 +41,33 @@ createSnippetHTML = (snippet) ->
     return "<div class='snippet'><span class='fieldName'>#{snippet.fieldName}</span><div class='snippetText'>#{snippet.text}</div></div>"
 
 addResultHTMLToResultDiv = (resultHTML) ->
-    $('#resultDiv').prepend(resultHTML)
+    $('#resultDiv').append(resultHTML)
 
-$('#queryForm').submit(() -> 
-    queryServer($('#queryInput').val())
-    return false
-)
+getMoreResultsOnScrollDown = ->
+    canGetMoreResults = true
+    $(window).scroll(() ->
+        if (atBottomOfPage())
+            if (canGetMoreResults)
+                canGetMoreResults = false
+                getMoreResults()
+    )
+    
+getMoreResults = ->
+    queryServer()
+        
+atBottomOfPage = ->        
+    currentScroll = $(document).scrollTop()
+    totalHeight = document.body.offsetHeight
+    visibleHeight = window.innerHeight
+    return totalHeight - (visibleHeight + currentScroll)  <= 100 
+    
+addSubmitFunctionToQueryForm = ->
+    $('#queryForm').submit(() -> 
+        currentSearchOffset = 0
+        currentSearch = $('#queryInput').val()
+        $('#resultDiv').html('')
+        queryServer()
+        return false
+    )
+
+addSubmitFunctionToQueryForm()

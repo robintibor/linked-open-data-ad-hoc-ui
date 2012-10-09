@@ -1,19 +1,31 @@
 (function() {
-  var addResultHTMLToResultDiv, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, queryServer;
+  var addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, atBottomOfPage, canGetMoreResults, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, getMoreResults, getMoreResultsOnScrollDown, queryServer;
 
-  queryServer = function(queryString) {
+  canGetMoreResults = false;
+
+  currentSearchOffset = 0;
+
+  currentSearch = "";
+
+  queryServer = function() {
     return $.ajax({
       url: 'http://metropolis.informatik.uni-freiburg.de:28451/',
       data: {
-        query: queryString,
+        query: currentSearch,
+        offset: currentSearchOffset,
         callback: "test"
       },
       dataType: 'jsonp',
       success: function(data) {
         var resultHTML;
-        $('#resultDiv').html("<pre> " + (JSON.stringify(data, '<br/>', '\t')) + " </pre>");
         resultHTML = createResultHTML(data);
-        return addResultHTMLToResultDiv(resultHTML);
+        addResultHTMLToResultDiv(resultHTML);
+        if (data.documents.length > 0) {
+          currentSearchOffset += data.documents.length;
+          return getMoreResultsOnScrollDown();
+        } else {
+          return canGetMoreResults = false;
+        }
       }
     });
   };
@@ -51,12 +63,43 @@
   };
 
   addResultHTMLToResultDiv = function(resultHTML) {
-    return $('#resultDiv').prepend(resultHTML);
+    return $('#resultDiv').append(resultHTML);
   };
 
-  $('#queryForm').submit(function() {
-    queryServer($('#queryInput').val());
-    return false;
-  });
+  getMoreResultsOnScrollDown = function() {
+    canGetMoreResults = true;
+    return $(window).scroll(function() {
+      if (atBottomOfPage()) {
+        if (canGetMoreResults) {
+          canGetMoreResults = false;
+          return getMoreResults();
+        }
+      }
+    });
+  };
+
+  getMoreResults = function() {
+    return queryServer();
+  };
+
+  atBottomOfPage = function() {
+    var currentScroll, totalHeight, visibleHeight;
+    currentScroll = $(document).scrollTop();
+    totalHeight = document.body.offsetHeight;
+    visibleHeight = window.innerHeight;
+    return totalHeight - (visibleHeight + currentScroll) <= 100;
+  };
+
+  addSubmitFunctionToQueryForm = function() {
+    return $('#queryForm').submit(function() {
+      currentSearchOffset = 0;
+      currentSearch = $('#queryInput').val();
+      $('#resultDiv').html('');
+      queryServer();
+      return false;
+    });
+  };
+
+  addSubmitFunctionToQueryForm();
 
 }).call(this);

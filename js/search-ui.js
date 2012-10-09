@@ -1,5 +1,5 @@
 (function() {
-  var addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, atBottomOfPage, canGetMoreResults, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, getMoreResults, getMoreResultsOnScrollDown, queryServer;
+  var addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, atBottomOfPage, canGetMoreResults, clearResultDiv, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, resetSearchValues, toggleResultsOnScrollDown;
 
   canGetMoreResults = false;
 
@@ -20,12 +20,7 @@
         var resultHTML;
         resultHTML = createResultHTML(data);
         addResultHTMLToResultDiv(resultHTML);
-        if (data.documents.length > 0) {
-          currentSearchOffset += data.documents.length;
-          return getMoreResultsOnScrollDown();
-        } else {
-          return canGetMoreResults = false;
-        }
+        return toggleResultsOnScrollDown(data.documents.length);
       }
     });
   };
@@ -66,8 +61,24 @@
     return $('#resultDiv').append(resultHTML);
   };
 
+  toggleResultsOnScrollDown = function(numberOfDocumentsForLastSearch) {
+    if (numberOfDocumentsForLastSearch > 0) {
+      currentSearchOffset += numberOfDocumentsForLastSearch;
+      return ensureMoreResultsOnScrollDown();
+    } else {
+      return disableMoreResultsOnScrollDown();
+    }
+  };
+
+  ensureMoreResultsOnScrollDown = function() {
+    return canGetMoreResults = true;
+  };
+
+  disableMoreResultsOnScrollDown = function() {
+    return canGetMoreResults = false;
+  };
+
   getMoreResultsOnScrollDown = function() {
-    canGetMoreResults = true;
     return $(window).scroll(function() {
       if (atBottomOfPage()) {
         if (canGetMoreResults) {
@@ -92,14 +103,24 @@
 
   addSubmitFunctionToQueryForm = function() {
     return $('#queryForm').submit(function() {
-      currentSearchOffset = 0;
-      currentSearch = $('#queryInput').val();
-      $('#resultDiv').html('');
+      resetSearchValues();
+      clearResultDiv();
       queryServer();
       return false;
     });
   };
 
+  resetSearchValues = function() {
+    currentSearchOffset = 0;
+    return currentSearch = $('#queryInput').val();
+  };
+
+  clearResultDiv = function() {
+    return $('#resultDiv').html('');
+  };
+
   addSubmitFunctionToQueryForm();
+
+  getMoreResultsOnScrollDown();
 
 }).call(this);

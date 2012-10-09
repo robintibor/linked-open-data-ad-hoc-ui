@@ -10,11 +10,7 @@ queryServer = () ->
         success: (data) ->
             resultHTML = createResultHTML(data)
             addResultHTMLToResultDiv(resultHTML)
-            if (data.documents.length > 0)
-                currentSearchOffset += data.documents.length
-                getMoreResultsOnScrollDown()
-            else
-                canGetMoreResults = false
+            toggleResultsOnScrollDown(data.documents.length)
         }
     )
 
@@ -43,8 +39,20 @@ createSnippetHTML = (snippet) ->
 addResultHTMLToResultDiv = (resultHTML) ->
     $('#resultDiv').append(resultHTML)
 
-getMoreResultsOnScrollDown = ->
+toggleResultsOnScrollDown = (numberOfDocumentsForLastSearch) ->
+    if (numberOfDocumentsForLastSearch > 0)
+        currentSearchOffset += numberOfDocumentsForLastSearch
+        ensureMoreResultsOnScrollDown()
+    else
+        disableMoreResultsOnScrollDown()
+
+ensureMoreResultsOnScrollDown = ->
     canGetMoreResults = true
+
+disableMoreResultsOnScrollDown = ->
+    canGetMoreResults = false
+
+getMoreResultsOnScrollDown = ->
     $(window).scroll(() ->
         if (atBottomOfPage())
             if (canGetMoreResults)
@@ -62,12 +70,19 @@ atBottomOfPage = ->
     return totalHeight - (visibleHeight + currentScroll)  <= 100 
     
 addSubmitFunctionToQueryForm = ->
-    $('#queryForm').submit(() -> 
-        currentSearchOffset = 0
-        currentSearch = $('#queryInput').val()
-        $('#resultDiv').html('')
+    $('#queryForm').submit(() ->
+        resetSearchValues()
+        clearResultDiv()
         queryServer()
         return false
     )
 
+resetSearchValues = ->
+    currentSearchOffset = 0
+    currentSearch = $('#queryInput').val()
+
+clearResultDiv = ->
+    $('#resultDiv').html('')
+
 addSubmitFunctionToQueryForm()
+getMoreResultsOnScrollDown()

@@ -4,15 +4,19 @@ currentSearch =  ""
 
 queryServer = () ->
     $.ajax(
-        {url: 'http://metropolis.informatik.uni-freiburg.de:28451/',
-        data: {query: currentSearch, offset: currentSearchOffset, callback: "test"},
+        {url: 'http://metropolis.informatik.uni-freiburg.de:28452/',
+        data: {query: currentSearch, offset: currentSearchOffset},
         dataType: 'jsonp',
         success: (data) ->
+            removeLoadingMonkey()
             resultHTML = createResultHTML(data)
             addResultHTMLToResultDiv(resultHTML)
             toggleResultsOnScrollDown(data.documents.length)
         }
     )
+
+removeLoadingMonkey = ->
+    $('#loadingMonkey').remove()
 
 createResultHTML = (data) ->
     resultDocumentsHTML = ""
@@ -61,6 +65,7 @@ getMoreResultsOnScrollDown = ->
     )
     
 getMoreResults = ->
+    addLoadingMonkey()
     queryServer()
         
 atBottomOfPage = ->        
@@ -73,6 +78,7 @@ addSubmitFunctionToQueryForm = ->
     $('#queryForm').submit(() ->
         resetSearchValues()
         clearResultDiv()
+        addLoadingMonkey()
         queryServer()
         return false
     )
@@ -84,5 +90,24 @@ resetSearchValues = ->
 clearResultDiv = ->
     $('#resultDiv').html('')
 
+
+addLoadingMonkey = ->
+    $('#resultDiv').append("<img id='loadingMonkey' src='http://thedancingmonkey.webs.com/monkey.gif'/>")
+
+askForFieldWeights = () ->
+    $.ajax(
+        {url: 'http://metropolis.informatik.uni-freiburg.de:28452/GETPARAMETERS',
+        data: {query: currentSearch, offset: currentSearchOffset},
+        dataType: 'jsonp',
+        success: (data) ->
+            resultHTML = createResultHTML(data)
+            addResultHTMLToResultDiv(resultHTML)
+            toggleResultsOnScrollDown(data.documents.length)
+        }
+    )
+    
+
+
 addSubmitFunctionToQueryForm()
 getMoreResultsOnScrollDown()
+#askForFieldWeights()

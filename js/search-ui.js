@@ -1,5 +1,5 @@
 (function() {
-  var addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, atBottomOfPage, canGetMoreResults, clearResultDiv, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, resetSearchValues, toggleResultsOnScrollDown;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, clearResultDiv, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, toggleResultsOnScrollDown;
 
   canGetMoreResults = false;
 
@@ -9,20 +9,24 @@
 
   queryServer = function() {
     return $.ajax({
-      url: 'http://metropolis.informatik.uni-freiburg.de:28451/',
+      url: 'http://metropolis.informatik.uni-freiburg.de:28452/',
       data: {
         query: currentSearch,
-        offset: currentSearchOffset,
-        callback: "test"
+        offset: currentSearchOffset
       },
       dataType: 'jsonp',
       success: function(data) {
         var resultHTML;
+        removeLoadingMonkey();
         resultHTML = createResultHTML(data);
         addResultHTMLToResultDiv(resultHTML);
         return toggleResultsOnScrollDown(data.documents.length);
       }
     });
+  };
+
+  removeLoadingMonkey = function() {
+    return $('#loadingMonkey').remove();
   };
 
   createResultHTML = function(data) {
@@ -90,6 +94,7 @@
   };
 
   getMoreResults = function() {
+    addLoadingMonkey();
     return queryServer();
   };
 
@@ -105,6 +110,7 @@
     return $('#queryForm').submit(function() {
       resetSearchValues();
       clearResultDiv();
+      addLoadingMonkey();
       queryServer();
       return false;
     });
@@ -117,6 +123,27 @@
 
   clearResultDiv = function() {
     return $('#resultDiv').html('');
+  };
+
+  addLoadingMonkey = function() {
+    return $('#resultDiv').append("<img id='loadingMonkey' src='http://thedancingmonkey.webs.com/monkey.gif'/>");
+  };
+
+  askForFieldWeights = function() {
+    return $.ajax({
+      url: 'http://metropolis.informatik.uni-freiburg.de:28452/GETPARAMETERS',
+      data: {
+        query: currentSearch,
+        offset: currentSearchOffset
+      },
+      dataType: 'jsonp',
+      success: function(data) {
+        var resultHTML;
+        resultHTML = createResultHTML(data);
+        addResultHTMLToResultDiv(resultHTML);
+        return toggleResultsOnScrollDown(data.documents.length);
+      }
+    });
   };
 
   addSubmitFunctionToQueryForm();

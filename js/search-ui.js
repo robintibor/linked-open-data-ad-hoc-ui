@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, clearResultDiv, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, toggleResultsOnScrollDown;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, toggleResultsOnScrollDown;
 
   canGetMoreResults = false;
 
@@ -7,9 +7,11 @@
 
   currentSearch = "";
 
+  config = window.lod;
+
   queryServer = function() {
     return $.ajax({
-      url: 'http://metropolis.informatik.uni-freiburg.de:28452/',
+      url: config.host,
       data: {
         query: currentSearch,
         offset: currentSearchOffset
@@ -131,7 +133,7 @@
 
   askForFieldWeights = function() {
     return $.ajax({
-      url: 'http://metropolis.informatik.uni-freiburg.de:28452/GETPARAMETERS',
+      url: "" + config.host + "/GETPARAMETERS",
       data: {
         query: currentSearch,
         offset: currentSearchOffset

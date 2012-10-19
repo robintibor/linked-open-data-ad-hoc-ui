@@ -1,10 +1,11 @@
 canGetMoreResults = false
 currentSearchOffset = 0
 currentSearch =  ""
+config = window.lod
 
 queryServer = () ->
     $.ajax(
-        {url: 'http://metropolis.informatik.uni-freiburg.de:28452/',
+        {url: config.host,
         data: {query: currentSearch, offset: currentSearchOffset},
         dataType: 'jsonp',
         success: (data) ->
@@ -96,7 +97,7 @@ addLoadingMonkey = ->
 
 askForFieldWeights = () ->
     $.ajax(
-        {url: 'http://metropolis.informatik.uni-freiburg.de:28452/GETPARAMETERS',
+        {url: "#{config.host}/GETPARAMETERS",
         data: {query: currentSearch, offset: currentSearchOffset},
         dataType: 'jsonp',
         success: (data) ->

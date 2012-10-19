@@ -34,3 +34,8 @@
 .snippetText {
     background-color: #FFD;
 }
+
+.urlParameters{
+    width: 25%;
+    float: right;
+}

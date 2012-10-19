@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, toggleResultsOnScrollDown;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, sendSearchQueryToServer, toggleResultsOnScrollDown;
 
   canGetMoreResults = false;
 
@@ -9,21 +9,26 @@
 
   config = window.lod;
 
-  queryServer = function() {
+  queryServer = function(queryData, callback) {
     return $.ajax({
       url: config.host,
-      data: {
-        query: currentSearch,
-        offset: currentSearchOffset
-      },
+      data: queryData,
       dataType: 'jsonp',
-      success: function(data) {
-        var resultHTML;
-        removeLoadingMonkey();
-        resultHTML = createResultHTML(data);
-        addResultHTMLToResultDiv(resultHTML);
-        return toggleResultsOnScrollDown(data.documents.length);
-      }
+      success: callback
+    });
+  };
+
+  sendSearchQueryToServer = function() {
+    return queryServer({
+      type: 'SEARCHQUERY',
+      queryString: currentSearch,
+      offset: currentSearchOffset
+    }, function(data) {
+      var resultHTML;
+      removeLoadingMonkey();
+      resultHTML = createResultHTML(data);
+      addResultHTMLToResultDiv(resultHTML);
+      return toggleResultsOnScrollDown(data.documents.length);
     });
   };
 
@@ -97,7 +102,7 @@
 
   getMoreResults = function() {
     addLoadingMonkey();
-    return queryServer();
+    return sendSearchQueryToServer();
   };
 
   atBottomOfPage = function() {
@@ -113,7 +118,7 @@
       resetSearchValues();
       clearResultDiv();
       addLoadingMonkey();
-      queryServer();
+      sendSearchQueryToServer();
       return false;
     });
   };
@@ -132,24 +137,17 @@
   };
 
   askForFieldWeights = function() {
-    return $.ajax({
-      url: "" + config.host + "/GETPARAMETERS",
-      data: {
-        query: currentSearch,
-        offset: currentSearchOffset
-      },
-      dataType: 'jsonp',
-      success: function(data) {
-        var resultHTML;
-        resultHTML = createResultHTML(data);
-        addResultHTMLToResultDiv(resultHTML);
-        return toggleResultsOnScrollDown(data.documents.length);
-      }
+    return queryServer({
+      type: 'ENGINEPARAMETERS'
+    }, function(data) {
+      return console.log("parameters: " + (JSON.stringify(data)));
     });
   };
 
   addSubmitFunctionToQueryForm();
 
   getMoreResultsOnScrollDown();
+
+  askForFieldWeights();
 
 }).call(this);

@@ -3,17 +3,28 @@ currentSearchOffset = 0
 currentSearch =  ""
 config = window.lod
 
-queryServer = () ->
+queryServer = (queryData, callback) ->
     $.ajax(
-        {url: config.host,
-        data: {query: currentSearch, offset: currentSearchOffset},
-        dataType: 'jsonp',
-        success: (data) ->
+        {
+            url: config.host,
+            data: queryData, 
+            dataType: 'jsonp',
+            success: callback
+        }
+    )
+
+sendSearchQueryToServer = ->
+    queryServer(
+        {   
+            type: 'SEARCHQUERY', 
+            queryString: currentSearch,
+            offset: currentSearchOffset
+        },
+        (data) ->
             removeLoadingMonkey()
             resultHTML = createResultHTML(data)
             addResultHTMLToResultDiv(resultHTML)
             toggleResultsOnScrollDown(data.documents.length)
-        }
     )
 
 removeLoadingMonkey = ->
@@ -67,7 +78,7 @@ getMoreResultsOnScrollDown = ->
     
 getMoreResults = ->
     addLoadingMonkey()
-    queryServer()
+    sendSearchQueryToServer()
         
 atBottomOfPage = ->        
     currentScroll = $(document).scrollTop()
@@ -80,7 +91,7 @@ addSubmitFunctionToQueryForm = ->
         resetSearchValues()
         clearResultDiv()
         addLoadingMonkey()
-        queryServer()
+        sendSearchQueryToServer()
         return false
     )
 
@@ -96,19 +107,12 @@ addLoadingMonkey = ->
     $('#resultDiv').append("<img id='loadingMonkey' src='http://thedancingmonkey.webs.com/monkey.gif'/>")
 
 askForFieldWeights = () ->
-    $.ajax(
-        {url: "#{config.host}/GETPARAMETERS",
-        data: {query: currentSearch, offset: currentSearchOffset},
-        dataType: 'jsonp',
-        success: (data) ->
-            resultHTML = createResultHTML(data)
-            addResultHTMLToResultDiv(resultHTML)
-            toggleResultsOnScrollDown(data.documents.length)
-        }
+    queryServer(
+        {type: 'ENGINEPARAMETERS'},
+        (data) ->
+            console.log("parameters: #{JSON.stringify(data)}")
     )
-    
-
 
 addSubmitFunctionToQueryForm()
 getMoreResultsOnScrollDown()
-#askForFieldWeights()
+askForFieldWeights()

@@ -13,7 +13,7 @@ queryServer = (queryData, callback) ->
         }
     )
 
-callMethodOnServer = (methodName, methodParameters, callback) ->
+callMethodOnServer = (options) ->
     # Calling the method by using JSON RPC 2.0, see http://www.jsonrpc.org/specification
     queryServer(
         {
@@ -21,25 +21,27 @@ callMethodOnServer = (methodName, methodParameters, callback) ->
             jsonRPCObject: JSON.stringify({ 
                 # have to stringify JSONRPCObject for some reason.. (?)
                 jsonrpc: "2.0",
-                method : methodName,
-                params : methodParameters,
+                method : options.method,
+                params : options.parameters,
                 id : Date.now() # hopefully will be unique :) Actually ignoring this parameter so its ok ;)
             })
         },
         (data) ->
             console.log("Response:", data)
-            callback(data.result)
+            options.callback(data.result)
     )
 
 sendSearchQueryToServer = ->
-    callMethodOnServer("querySearchEngine", 
-        [currentSearch, currentSearchOffset],
-        (data) ->
-            removeLoadingMonkey()
-            resultHTML = createResultHTML(data)
-            addResultHTMLToResultDiv(resultHTML)
-            toggleResultsOnScrollDown(data.documents.length)
-        
+    callMethodOnServer(
+        {
+            method: "querySearchEngine",
+            parameters: [currentSearch, currentSearchOffset],
+            callback: (data) ->
+                removeLoadingMonkey()
+                resultHTML = createResultHTML(data)
+                addResultHTMLToResultDiv(resultHTML)
+                toggleResultsOnScrollDown(data.documents.length)
+        }
     )
 
 removeLoadingMonkey = ->
@@ -122,10 +124,12 @@ addLoadingMonkey = ->
     $('#resultDiv').append("<img id='loadingMonkey' src='http://thedancingmonkey.webs.com/monkey.gif'/>")
 
 askForFieldWeights = () ->
-    queryServer(
-        {type: 'ENGINEPARAMETERS'},
-        (data) ->
-            console.log("parameters: #{JSON.stringify(data)}")
+    callMethodOnServer(
+        { 
+            method: "getEngineParameters",
+            callback: (data) ->
+                console.log("parameters: #{JSON.stringify(data)}")
+        }
     )
 
 addSubmitFunctionToQueryForm()

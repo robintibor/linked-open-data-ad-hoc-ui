@@ -18,28 +18,32 @@
     });
   };
 
-  callMethodOnServer = function(methodName, methodParameters, callback) {
+  callMethodOnServer = function(options) {
     return queryServer({
       type: "JSONRPCCALL",
       jsonRPCObject: JSON.stringify({
         jsonrpc: "2.0",
-        method: methodName,
-        params: methodParameters,
+        method: options.method,
+        params: options.parameters,
         id: Date.now()
       })
     }, function(data) {
       console.log("Response:", data);
-      return callback(data.result);
+      return options.callback(data.result);
     });
   };
 
   sendSearchQueryToServer = function() {
-    return callMethodOnServer("querySearchEngine", [currentSearch, currentSearchOffset], function(data) {
-      var resultHTML;
-      removeLoadingMonkey();
-      resultHTML = createResultHTML(data);
-      addResultHTMLToResultDiv(resultHTML);
-      return toggleResultsOnScrollDown(data.documents.length);
+    return callMethodOnServer({
+      method: "querySearchEngine",
+      parameters: [currentSearch, currentSearchOffset],
+      callback: function(data) {
+        var resultHTML;
+        removeLoadingMonkey();
+        resultHTML = createResultHTML(data);
+        addResultHTMLToResultDiv(resultHTML);
+        return toggleResultsOnScrollDown(data.documents.length);
+      }
     });
   };
 
@@ -148,10 +152,11 @@
   };
 
   askForFieldWeights = function() {
-    return queryServer({
-      type: 'ENGINEPARAMETERS'
-    }, function(data) {
-      return console.log("parameters: " + (JSON.stringify(data)));
+    return callMethodOnServer({
+      method: "getEngineParameters",
+      callback: function(data) {
+        return console.log("parameters: " + (JSON.stringify(data)));
+      }
     });
   };
 

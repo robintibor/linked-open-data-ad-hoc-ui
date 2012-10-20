@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, sendSearchQueryToServer, toggleResultsOnScrollDown;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, sendSearchQueryToServer, toggleResultsOnScrollDown;
 
   canGetMoreResults = false;
 
@@ -18,12 +18,23 @@
     });
   };
 
-  sendSearchQueryToServer = function() {
+  callMethodOnServer = function(methodName, methodParameters, callback) {
     return queryServer({
-      type: 'SEARCHQUERY',
-      queryString: currentSearch,
-      offset: currentSearchOffset
+      type: "JSONRPCCALL",
+      jsonRPCObject: JSON.stringify({
+        jsonrpc: "2.0",
+        method: methodName,
+        params: methodParameters,
+        id: Date.now()
+      })
     }, function(data) {
+      console.log("Response:", data);
+      return callback(data.result);
+    });
+  };
+
+  sendSearchQueryToServer = function() {
+    return callMethodOnServer("querySearchEngine", [currentSearch, currentSearchOffset], function(data) {
       var resultHTML;
       removeLoadingMonkey();
       resultHTML = createResultHTML(data);

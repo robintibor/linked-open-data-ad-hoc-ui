@@ -13,18 +13,33 @@ queryServer = (queryData, callback) ->
         }
     )
 
-sendSearchQueryToServer = ->
+callMethodOnServer = (methodName, methodParameters, callback) ->
+    # Calling the method by using JSON RPC 2.0, see http://www.jsonrpc.org/specification
     queryServer(
-        {   
-            type: 'SEARCHQUERY', 
-            queryString: currentSearch,
-            offset: currentSearchOffset
+        {
+            type : "JSONRPCCALL",
+            jsonRPCObject: JSON.stringify({ 
+                # have to stringify JSONRPCObject for some reason.. (?)
+                jsonrpc: "2.0",
+                method : methodName,
+                params : methodParameters,
+                id : Date.now() # hopefully will be unique :) Actually ignoring this parameter so its ok ;)
+            })
         },
+        (data) ->
+            console.log("Response:", data)
+            callback(data.result)
+    )
+
+sendSearchQueryToServer = ->
+    callMethodOnServer("querySearchEngine", 
+        [currentSearch, currentSearchOffset],
         (data) ->
             removeLoadingMonkey()
             resultHTML = createResultHTML(data)
             addResultHTMLToResultDiv(resultHTML)
             toggleResultsOnScrollDown(data.documents.length)
+        
     )
 
 removeLoadingMonkey = ->

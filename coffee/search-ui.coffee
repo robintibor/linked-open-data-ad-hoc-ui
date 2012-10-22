@@ -123,7 +123,7 @@ clearResultDiv = ->
 
 
 addLoadingMonkey = ->
-    $('#resultDiv').append("<img id='loadingMonkey' src='http://thedancingmonkey.webs.com/monkey.gif'/>")
+    $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>")
 
 askForFieldWeights = () ->
     callMethodOnServer(

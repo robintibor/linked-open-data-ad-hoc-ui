@@ -149,7 +149,7 @@
   };
 
   addLoadingMonkey = function() {
-    return $('#resultDiv').append("<img id='loadingMonkey' src='http://thedancingmonkey.webs.com/monkey.gif'/>");
+    return $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>");
   };
 
   askForFieldWeights = function() {

@@ -2,7 +2,18 @@ body {
     background-color: rgba(255,228,196, 0.5)
 }
 
+.form-search {
+    text-align:center;
+}
+
+.loadingMonkeyImage {
+    /* center image */
+    margin: auto;
+    display:block;
+}
+
 .container {
+    margin-top: 10px;
     width: 80%;
 }
 

@@ -63,9 +63,10 @@
   };
 
   createResultHTMLForDocument = function(doc) {
-    var snippetsHTML;
+    var formattedScore, snippetsHTML;
     snippetsHTML = createSnippetsHTML(doc);
-    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + doc.url + "'>" + doc.title + "</a></span><span class='resultScore'>" + doc.score + "</span></div>            <div class='resultURL'><a href='" + doc.url + "'>" + doc.url + "</a></div>            " + snippetsHTML + "            </div>";
+    formattedScore = doc.score.toFixed(3);
+    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + doc.url + "'>" + doc.title + "</a></span><span class='resultScore'>" + formattedScore + "</span></div>            <div class='resultURL'><a href='" + doc.url + "'>" + doc.url + "</a></div>            " + snippetsHTML + "            </div>";
   };
 
   createSnippetsHTML = function(doc) {

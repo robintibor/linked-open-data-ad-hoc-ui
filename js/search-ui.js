@@ -63,9 +63,9 @@
   };
 
   createResultHTMLForDocument = function(doc) {
-    var snippetHTML;
-    snippetHTML = createSnippetsHTML(doc);
-    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'>" + doc.title + "</span><span class='resultScore'>" + doc.score + "</span></div>            <div>" + snippetHTML + "</div>            </div>";
+    var snippetsHTML;
+    snippetsHTML = createSnippetsHTML(doc);
+    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + doc.url + "'>" + doc.title + "</a></span><span class='resultScore'>" + doc.score + "</span></div>            <div class='resultURL'><a href='" + doc.url + "'>" + doc.url + "</a></div>            " + snippetsHTML + "            </div>";
   };
 
   createSnippetsHTML = function(doc) {
@@ -76,11 +76,11 @@
       snippet = _ref[_i];
       snippetHTML += createSnippetHTML(snippet);
     }
-    return snippetHTML;
+    return "<table class='snippetTable'>" + snippetHTML + "</table>";
   };
 
   createSnippetHTML = function(snippet) {
-    return "<div class='snippet'><span class='fieldName'>" + snippet.fieldName + "</span><div class='snippetText'>" + snippet.text + "</div></div>";
+    return "<tr><td class='fieldName'>" + snippet.fieldName + "</td><td class='snippetText span11'>" + snippet.text + "</td></tr>";
   };
 
   addResultHTMLToResultDiv = function(resultHTML) {

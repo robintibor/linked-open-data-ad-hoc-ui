@@ -81,7 +81,7 @@
   };
 
   createSnippetHTML = function(snippet) {
-    return "<tr><td class='fieldName'>" + snippet.fieldName + "</td><td class='snippetText span11'>" + snippet.text + "</td></tr>";
+    return "<tr><td class='fieldName'>" + snippet.fieldName + "</td><td class='snippetText'>" + snippet.text + "</td></tr>";
   };
 
   addResultHTMLToResultDiv = function(resultHTML) {

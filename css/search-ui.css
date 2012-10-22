@@ -33,6 +33,11 @@
     font-size: 14px;
 }
 
+.snippetTable td {
+    padding-bottom: 5px;
+    padding-bottom: 15px;
+}
+
 .snippetTable tr:nth-child(odd){
     background-color: #FFD;
 }

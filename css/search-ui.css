@@ -1,3 +1,7 @@
+body {
+    background-color: rgba(255,228,196, 0.5)
+}
+
 .container {
     width: 80%;
 }
@@ -22,10 +26,10 @@
 }
 
 .oneResult {
+    background-color: rgba(255,228,196, 0.5);
     padding: 5px;
     width: 70%;
     margin-bottom:25px;
-    background-color: #FFC;
 }
 
 .snippetTable {
@@ -39,11 +43,11 @@
 }
 
 .snippetTable tr:nth-child(odd){
-    background-color: #FFD;
+    background-color: rgba(255,228,196, 0.5);
 }
 
 .snippetTable tr:nth-child(even){
-    background-color: #FFE;
+    background-color: rgba(255,228,196, 1);
 }
 
 .fieldName {

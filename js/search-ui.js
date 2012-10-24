@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
 
   canGetMoreResults = false;
 
@@ -63,10 +63,12 @@
   };
 
   createResultHTMLForDocument = function(doc) {
-    var formattedScore, snippetsHTML;
+    var cleanDocTitle, cleanURL, formattedScore, snippetsHTML;
     snippetsHTML = createSnippetsHTML(doc);
     formattedScore = doc.score.toFixed(3);
-    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + doc.url + "'>" + doc.title + "</a></span><span class='resultScore'>" + formattedScore + "</span></div>            <div class='resultURL'><a href='" + doc.url + "'>" + doc.url + "</a></div>            " + snippetsHTML + "            </div>";
+    cleanDocTitle = unescapeUnicode(restoreUniCodeEscapeSequences(doc.title));
+    cleanURL = unescapeUnicode(doc.url);
+    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + cleanURL + "'>" + doc.title + "</a></span><span class='resultScore'>" + formattedScore + "</span></div>            <div class='resultURL'><a href='" + cleanURL + "'>" + cleanURL + "</a></div>            " + snippetsHTML + "            </div>";
   };
 
   createSnippetsHTML = function(doc) {
@@ -94,6 +96,10 @@
     });
     text = unescape(text);
     return text;
+  };
+
+  restoreUniCodeEscapeSequences = function(title) {
+    return title;
   };
 
   addResultHTMLToResultDiv = function(resultHTML) {

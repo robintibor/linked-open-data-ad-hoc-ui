@@ -56,9 +56,11 @@ createResultHTML = (data) ->
 createResultHTMLForDocument = (doc) ->
     snippetsHTML = createSnippetsHTML(doc)
     formattedScore = doc.score.toFixed(3)
+    cleanDocTitle = unescapeUnicode(restoreUniCodeEscapeSequences(doc.title))
+    cleanURL = unescapeUnicode(doc.url)
     return "<div class='oneResult'>
-            <div class='resultHeader'><span class='resultTitle'><a href='#{doc.url}'>#{doc.title}</a></span><span class='resultScore'>#{formattedScore}</span></div>
-            <div class='resultURL'><a href='#{doc.url}'>#{doc.url}</a></div>
+            <div class='resultHeader'><span class='resultTitle'><a href='#{cleanURL}'>#{doc.title}</a></span><span class='resultScore'>#{formattedScore}</span></div>
+            <div class='resultURL'><a href='#{cleanURL}'>#{cleanURL}</a></div>
             #{snippetsHTML}
             </div>"
 
@@ -80,6 +82,9 @@ unescapeUnicode = (text) ->
         )
     text = unescape(text)
     return text
+
+restoreUniCodeEscapeSequences = (title) ->
+    return title
 
 addResultHTMLToResultDiv = (resultHTML) ->
     $('#resultDiv').append(resultHTML)

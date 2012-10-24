@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, sendSearchQueryToServer, toggleResultsOnScrollDown;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
 
   canGetMoreResults = false;
 
@@ -81,7 +81,19 @@
   };
 
   createSnippetHTML = function(snippet) {
-    return "<tr><td class='fieldName'>" + snippet.fieldName + "</td><td class='snippetText'>" + snippet.text + "</td></tr>";
+    var cleanSnippetText;
+    cleanSnippetText = unescapeUnicode(snippet.text);
+    return "<tr><td class='fieldName'>" + snippet.fieldName + "</td><td class='snippetText'>" + cleanSnippetText + "</td></tr>";
+  };
+
+  unescapeUnicode = function(text) {
+    var unicodeEscapeRegExp;
+    unicodeEscapeRegExp = /\\u([\d\w]{4})/gi;
+    text = text.replace(unicodeEscapeRegExp, function(match, group) {
+      return String.fromCharCode(parseInt(group, 16));
+    });
+    text = unescape(text);
+    return text;
   };
 
   addResultHTMLToResultDiv = function(resultHTML) {

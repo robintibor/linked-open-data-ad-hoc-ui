@@ -2,6 +2,6 @@
 
   window.lod = {};
 
-  window.lod.host = 'http://localhost:28452';
+  window.lod.host = 'http://metropolis:28452';
 
 }).call(this);

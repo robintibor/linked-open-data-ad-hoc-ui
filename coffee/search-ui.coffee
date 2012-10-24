@@ -69,7 +69,17 @@ createSnippetsHTML = (doc) ->
     return "<table class='snippetTable'>#{snippetHTML}</table>"
 
 createSnippetHTML = (snippet) ->
-    return "<tr><td class='fieldName'>#{snippet.fieldName}</td><td class='snippetText'>#{snippet.text}</td></tr>"
+    cleanSnippetText = unescapeUnicode(snippet.text);
+    return "<tr><td class='fieldName'>#{snippet.fieldName}</td><td class='snippetText'>#{cleanSnippetText}</td></tr>"
+
+# http://stackoverflow.com/a/7885499/1469195
+unescapeUnicode = (text) ->
+    unicodeEscapeRegExp = /\\u([\d\w]{4})/gi;
+    text = text.replace(unicodeEscapeRegExp, (match, group) ->
+            return String.fromCharCode(parseInt(group, 16))
+        )
+    text = unescape(text)
+    return text
 
 addResultHTMLToResultDiv = (resultHTML) ->
     $('#resultDiv').append(resultHTML)

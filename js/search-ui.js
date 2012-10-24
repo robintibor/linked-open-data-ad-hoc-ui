@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, noResultsMessage, queryServer, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
 
   canGetMoreResults = false;
 
@@ -53,6 +53,9 @@
 
   createResultHTML = function(data) {
     var doc, resultDocumentsHTML, _i, _len, _ref;
+    if (resultHasNoDocuments(data)) {
+      return noResultsMessage();
+    }
     resultDocumentsHTML = "";
     _ref = data.documents;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -60,6 +63,14 @@
       resultDocumentsHTML += createResultHTMLForDocument(doc);
     }
     return resultDocumentsHTML;
+  };
+
+  resultHasNoDocuments = function(data) {
+    return data.documents.length === 0;
+  };
+
+  noResultsMessage = function() {
+    return "<div class='pagination-centered'>No Results. Try using <a href='http://broccoli.informatik.uni-freiburg.de/'>Broccoli</a> :)</div>";
   };
 
   createResultHTMLForDocument = function(doc) {

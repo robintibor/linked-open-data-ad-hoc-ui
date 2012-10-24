@@ -48,10 +48,18 @@ removeLoadingMonkey = ->
     $('#loadingMonkey').remove()
 
 createResultHTML = (data) ->
+    if (resultHasNoDocuments(data))
+        return noResultsMessage()
     resultDocumentsHTML = ""
     for doc in data.documents
         resultDocumentsHTML += createResultHTMLForDocument(doc)
     return resultDocumentsHTML
+
+resultHasNoDocuments = (data) ->
+    return data.documents.length == 0
+
+noResultsMessage = ->
+        return "<div class='pagination-centered'>No Results. Try using <a href='http://broccoli.informatik.uni-freiburg.de/'>Broccoli</a> :)</div>"
 
 createResultHTMLForDocument = (doc) ->
     snippetsHTML = createSnippetsHTML(doc)

@@ -68,7 +68,7 @@
     formattedScore = doc.score.toFixed(3);
     cleanDocTitle = unescapeUnicode(restoreUniCodeEscapeSequences(doc.title));
     cleanURL = unescapeUnicode(doc.url);
-    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + cleanURL + "'>" + doc.title + "</a></span><span class='resultScore'>" + formattedScore + "</span></div>            <div class='resultURL'><a href='" + cleanURL + "'>" + cleanURL + "</a></div>            " + snippetsHTML + "            </div>";
+    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + cleanURL + "'>" + cleanDocTitle + "</a></span><span class='resultScore'>" + formattedScore + "</span></div>            <div class='resultURL'><a href='" + cleanURL + "'>" + cleanURL + "</a></div>            " + snippetsHTML + "            </div>";
   };
 
   createSnippetsHTML = function(doc) {
@@ -99,6 +99,17 @@
   };
 
   restoreUniCodeEscapeSequences = function(title) {
+    var brokenUnicodeEscapeRegExp;
+    brokenUnicodeEscapeRegExp = /\\u[\d\w]{1,3}_/gi;
+    console.log("title before", title);
+    while (title.match(brokenUnicodeEscapeRegExp)) {
+      title = title.replace(brokenUnicodeEscapeRegExp, function(match, group) {
+        console.log("broken match: " + group, match, group);
+        console.log("replacing with: " + (match.replace('_', '')));
+        return match.replace('_', '');
+      });
+      console.log("title after", title);
+    }
     return title;
   };
 

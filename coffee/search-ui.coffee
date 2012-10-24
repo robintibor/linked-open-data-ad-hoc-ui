@@ -59,7 +59,7 @@ createResultHTMLForDocument = (doc) ->
     cleanDocTitle = unescapeUnicode(restoreUniCodeEscapeSequences(doc.title))
     cleanURL = unescapeUnicode(doc.url)
     return "<div class='oneResult'>
-            <div class='resultHeader'><span class='resultTitle'><a href='#{cleanURL}'>#{doc.title}</a></span><span class='resultScore'>#{formattedScore}</span></div>
+            <div class='resultHeader'><span class='resultTitle'><a href='#{cleanURL}'>#{cleanDocTitle}</a></span><span class='resultScore'>#{formattedScore}</span></div>
             <div class='resultURL'><a href='#{cleanURL}'>#{cleanURL}</a></div>
             #{snippetsHTML}
             </div>"
@@ -83,7 +83,21 @@ unescapeUnicode = (text) ->
     text = unescape(text)
     return text
 
+
+# Hacky hackay way of restoring uncide escape sequences that were split by an udnerscore in our intiial parsing process
+#it can happen that somethign like \u017E gets split into \u017_E, and then we have to revert this split
+# the split is initally hapenning to split words in the title...
 restoreUniCodeEscapeSequences = (title) ->
+    brokenUnicodeEscapeRegExp = /\\u[\d\w]{1,3}_/gi;
+    console.log("title before", title)
+    while (title.match(brokenUnicodeEscapeRegExp))
+        title = title.replace(brokenUnicodeEscapeRegExp,
+            (match, group) ->
+                console.log("broken match: #{group}", match, group)
+                console.log("replacing with: #{match.replace('_', '')}")
+                return match.replace('_', '')
+        )
+        console.log("title after", title)
     return title
 
 addResultHTMLToResultDiv = (resultHTML) ->

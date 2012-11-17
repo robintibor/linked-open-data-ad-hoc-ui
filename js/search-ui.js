@@ -71,9 +71,11 @@
   };
 
   logQueryInBrowserHistory = function() {
-    return window.History.pushState({
-      queryString: currentSearch
-    }, "Search State", "?query=" + currentSearch);
+    if (currentSearch !== extractQueryStringFromCurrentLocation()) {
+      return window.History.pushState({
+        queryString: currentSearch
+      }, "Search State", "?query=" + currentSearch);
+    }
   };
 
   removeLoadingMonkey = function() {

@@ -65,7 +65,11 @@ sendSearchQueryToServer = ->
     )
 
 logQueryInBrowserHistory = () ->
-    window.History.pushState({queryString:currentSearch}, "Search State", "?query=#{currentSearch}")
+    # check if the submit was caused by a pushing of the back or forward buttons
+    # in this case the url should already be correct (containt he query string), 
+    # and no new state should be pushed!
+    if (currentSearch != extractQueryStringFromCurrentLocation())
+        window.History.pushState({queryString:currentSearch}, "Search State", "?query=#{currentSearch}")
 
 removeLoadingMonkey = ->
     $('#loadingMonkey').remove()

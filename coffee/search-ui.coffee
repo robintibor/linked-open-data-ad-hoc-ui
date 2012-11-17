@@ -2,6 +2,27 @@ canGetMoreResults = false
 currentSearchOffset = 0
 currentSearch =  ""
 config = window.lod
+    
+addSubmitFunctionToQueryForm = ->
+    $('#queryForm').submit(() ->
+        resetSearchValues()
+        clearResultDiv()
+        addLoadingMonkey()
+        sendSearchQueryToServer()
+        logQueryInBrowserHistory()
+        return false
+    )
+
+resetSearchValues = ->
+    currentSearchOffset = 0
+    currentSearch = $('#queryInput').val()
+
+clearResultDiv = ->
+    $('#resultDiv').html('')
+
+
+addLoadingMonkey = ->
+    $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>")
 
 queryServer = (queryData, callback) ->
     $.ajax(
@@ -27,7 +48,6 @@ callMethodOnServer = (options) ->
             })
         },
         (data) ->
-            console.log("Response:", data)
             options.callback(data.result)
     )
 
@@ -43,6 +63,9 @@ sendSearchQueryToServer = ->
                 toggleResultsOnScrollDown(data.documents.length)
         }
     )
+
+logQueryInBrowserHistory = () ->
+    window.History.pushState({queryString:currentSearch}, "Search State", "?query=#{currentSearch}")
 
 removeLoadingMonkey = ->
     $('#loadingMonkey').remove()
@@ -97,7 +120,6 @@ unescapeUnicode = (text) ->
 # the split is initally hapenning to split words in the title...
 restoreUniCodeEscapeSequences = (title) ->
     brokenUnicodeEscapeRegExp = /\\u[\d\w]{1,3}_/gi;
-    console.log("title before", title)
     while (title.match(brokenUnicodeEscapeRegExp))
         title = title.replace(brokenUnicodeEscapeRegExp,
             (match, group) ->
@@ -141,36 +163,49 @@ atBottomOfPage = ->
     totalHeight = document.body.offsetHeight
     visibleHeight = window.innerHeight
     return totalHeight - (visibleHeight + currentScroll)  <= 100 
-    
-addSubmitFunctionToQueryForm = ->
-    $('#queryForm').submit(() ->
-        resetSearchValues()
-        clearResultDiv()
-        addLoadingMonkey()
-        sendSearchQueryToServer()
-        return false
-    )
 
-resetSearchValues = ->
-    currentSearchOffset = 0
-    currentSearch = $('#queryInput').val()
-
-clearResultDiv = ->
-    $('#resultDiv').html('')
-
-
-addLoadingMonkey = ->
-    $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>")
 
 askForFieldWeights = () ->
     callMethodOnServer(
         { 
             method: "getEngineParameters",
             callback: (data) ->
-                console.log("parameters: #{JSON.stringify(data)}")
+                #console.log("parameters: #{JSON.stringify(data)}")
         }
+    )
+
+checkURLHrefForQueryString = () ->
+    # querystring should be like query=testQueryString :)
+    # e.g. http://localhost:3131/workspace/linked-open-data-ad-hoc-ui/index.html?query=testQueryString
+    queryString = extractQueryStringFromCurrentLocation()
+    if (queryString? and queryString != "")
+        enterAndSubmitQueryAsUser(queryString)
+
+extractQueryStringFromCurrentLocation =  () ->
+     # querystring should be like query=testQueryString :)
+    # e.g. http://localhost:3131/workspace/linked-open-data-ad-hoc-ui/index.html?query=testQueryString
+    possibleQueryString = window.location.href.match(/query=([^&]*)/)
+    if (possibleQueryString? and possibleQueryString.length == 2)
+        queryString = window.location.href.match(/query=([^&]*)/)[1]
+        queryString = unescape(queryString)
+    return queryString
+
+enterAndSubmitQueryAsUser = (queryString) ->
+    $('#queryInput').val(queryString).submit()
+
+enableBrowserHistory = () ->
+    History = window.History
+    History.Adapter.bind(window,'statechange', () ->
+        State = History.getState(); 
+        queryString = extractQueryStringFromCurrentLocation()
+        if (not queryString?)
+            queryString = ""
+        if (queryString != currentSearch)
+            enterAndSubmitQueryAsUser(queryString)
     )
 
 addSubmitFunctionToQueryForm()
 getMoreResultsOnScrollDown()
 askForFieldWeights()
+checkURLHrefForQueryString()
+enableBrowserHistory()

@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, sendSearchQueryToServer, toggleResultsOnScrollDown;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, noResultsMessage, queryServer, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
 
   canGetMoreResults = false;
 
@@ -53,6 +53,9 @@
 
   createResultHTML = function(data) {
     var doc, resultDocumentsHTML, _i, _len, _ref;
+    if (resultHasNoDocuments(data)) {
+      return noResultsMessage();
+    }
     resultDocumentsHTML = "";
     _ref = data.documents;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -62,11 +65,21 @@
     return resultDocumentsHTML;
   };
 
+  resultHasNoDocuments = function(data) {
+    return data.documents.length === 0;
+  };
+
+  noResultsMessage = function() {
+    return "<div class='pagination-centered'>No Results. Try using <a href='http://broccoli.informatik.uni-freiburg.de/'>Broccoli</a> :)</div>";
+  };
+
   createResultHTMLForDocument = function(doc) {
-    var formattedScore, snippetsHTML;
+    var cleanDocTitle, cleanURL, formattedScore, snippetsHTML;
     snippetsHTML = createSnippetsHTML(doc);
     formattedScore = doc.score.toFixed(3);
-    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + doc.url + "'>" + doc.title + "</a></span><span class='resultScore'>" + formattedScore + "</span></div>            <div class='resultURL'><a href='" + doc.url + "'>" + doc.url + "</a></div>            " + snippetsHTML + "            </div>";
+    cleanDocTitle = unescapeUnicode(restoreUniCodeEscapeSequences(doc.title));
+    cleanURL = unescapeUnicode(doc.url);
+    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + cleanURL + "'>" + cleanDocTitle + "</a></span><span class='resultScore'>" + formattedScore + "</span></div>            <div class='resultURL'><a href='" + cleanURL + "'>" + cleanURL + "</a></div>            " + snippetsHTML + "            </div>";
   };
 
   createSnippetsHTML = function(doc) {
@@ -81,7 +94,34 @@
   };
 
   createSnippetHTML = function(snippet) {
-    return "<tr><td class='fieldName'>" + snippet.fieldName + "</td><td class='snippetText'>" + snippet.text + "</td></tr>";
+    var cleanSnippetText;
+    cleanSnippetText = unescapeUnicode(snippet.text);
+    return "<tr><td class='fieldName'>" + snippet.fieldName + "</td><td class='snippetText'>" + cleanSnippetText + "</td></tr>";
+  };
+
+  unescapeUnicode = function(text) {
+    var unicodeEscapeRegExp;
+    unicodeEscapeRegExp = /\\u([\d\w]{4})/gi;
+    text = text.replace(unicodeEscapeRegExp, function(match, group) {
+      return String.fromCharCode(parseInt(group, 16));
+    });
+    text = unescape(text);
+    return text;
+  };
+
+  restoreUniCodeEscapeSequences = function(title) {
+    var brokenUnicodeEscapeRegExp;
+    brokenUnicodeEscapeRegExp = /\\u[\d\w]{1,3}_/gi;
+    console.log("title before", title);
+    while (title.match(brokenUnicodeEscapeRegExp)) {
+      title = title.replace(brokenUnicodeEscapeRegExp, function(match, group) {
+        console.log("broken match: " + group, match, group);
+        console.log("replacing with: " + (match.replace('_', '')));
+        return match.replace('_', '');
+      });
+      console.log("title after", title);
+    }
+    return title;
   };
 
   addResultHTMLToResultDiv = function(resultHTML) {

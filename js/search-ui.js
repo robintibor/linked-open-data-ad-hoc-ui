@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, checkURLHrefForQueryString, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, getMoreResults, getMoreResultsOnScrollDown, logQueryInBrowserHistory, noResultsMessage, queryServer, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, checkURLHrefForQueryString, clearResultDiv, clearSearch, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, getMoreResults, getMoreResultsOnScrollDown, logQueryInBrowserHistory, noResultsMessage, queryServer, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
 
   canGetMoreResults = false;
 
@@ -235,13 +235,19 @@
       var State, queryString;
       State = History.getState();
       queryString = extractQueryStringFromCurrentLocation();
-      if (!(queryString != null)) {
-        queryString = "";
-      }
-      if (queryString !== currentSearch) {
+      if (!queryString) {
+        return clearSearch();
+      } else if (queryString !== currentSearch) {
         return enterAndSubmitQueryAsUser(queryString);
       }
     });
+  };
+
+  clearSearch = function() {
+    currentSearchOffset = 0;
+    currentSearch = "";
+    $('#queryInput').val('');
+    return clearResultDiv();
   };
 
   addSubmitFunctionToQueryForm();

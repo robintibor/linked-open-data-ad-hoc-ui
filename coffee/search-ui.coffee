@@ -202,11 +202,17 @@ enableBrowserHistory = () ->
     History.Adapter.bind(window,'statechange', () ->
         State = History.getState(); 
         queryString = extractQueryStringFromCurrentLocation()
-        if (not queryString?)
-            queryString = ""
-        if (queryString != currentSearch)
+        if (not queryString)
+            clearSearch()
+        else if (queryString != currentSearch)
             enterAndSubmitQueryAsUser(queryString)
     )
+
+clearSearch = () ->
+    currentSearchOffset = 0
+    currentSearch = ""
+    $('#queryInput').val('')
+    clearResultDiv()
 
 addSubmitFunctionToQueryForm()
 getMoreResultsOnScrollDown()

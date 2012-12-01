@@ -203,6 +203,7 @@ enableBrowserHistory = () ->
         State = History.getState(); 
         queryString = extractQueryStringFromCurrentLocation()
         if (not queryString)
+            # we are at a page wihtout query, like on first load
             clearSearch()
         else if (queryString != currentSearch)
             enterAndSubmitQueryAsUser(queryString)

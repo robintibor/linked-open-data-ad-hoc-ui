@@ -22,7 +22,7 @@
         id: Date.now()
       })
     }, function(data) {
-      console.log("Response:", data);
+      console.log("Response from server for " + options.method + ":", data);
       return options.callback(data.result);
     });
   };

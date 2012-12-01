@@ -100,11 +100,8 @@ restoreUniCodeEscapeSequences = (title) ->
     while (title.match(brokenUnicodeEscapeRegExp))
         title = title.replace(brokenUnicodeEscapeRegExp,
             (match, group) ->
-                console.log("broken match: #{group}", match, group)
-                console.log("replacing with: #{match.replace('_', '')}")
                 return match.replace('_', '')
         )
-        console.log("title after", title)
     return title
 
 addResultHTMLToResultDiv = (resultHTML) ->
@@ -147,9 +144,27 @@ askForFieldWeights = () ->
         { 
             method: "getEngineParameters",
             callback: (data) ->
-                #console.log("parameters: #{JSON.stringify(data)}")
+               showURLParameters(data.domainScores)
         }
     )
+
+showURLParameters = (urlParameters) ->
+    # sort url parameters by score descending :)
+    urlParameters.sort((urlParameterA, urlParameterB) -> 
+        urlParameterB.score - urlParameterA.score
+        )
+        
+    for urlParameter in urlParameters
+        parameterTextBox = $('.urlParameters')
+        urlParametersLine = createURLParameterLine(urlParameter)
+        oldParameterText = parameterTextBox.val()
+        parameterTextBox.val("#{oldParameterText}#{urlParametersLine}\n")
+    # remove last newLine
+    oldText = parameterTextBox.val()
+    parameterTextBox.val(oldText[0...oldText.length - 1])
+
+createURLParameterLine = (urlParameter) ->
+    return "#{urlParameter.url}\t#{urlParameter.score}"
 
 checkURLHrefForQueryString = () ->
     # querystring should be like query=testQueryString :)
@@ -180,15 +195,53 @@ enableBrowserHistory = () ->
         else if (queryString != currentSearch)
             enterAndSubmitQueryAsUser(queryString)
     )
-
 clearSearch = () ->
     currentSearchOffset = 0
     currentSearch = ""
     $('#queryInput').val('')
     clearResultDiv()
 
+changeURLParametersOnLostFocus = ->
+    $('.urlParameters').blur(updateURLParameters)
+
+updateURLParameters = ->
+    urlParameters = extractUrlParametersOfTextArea()
+    sendURLParametersToServer(urlParameters)
+
+extractUrlParametersOfTextArea = ->
+    urlParameters = []
+    urlParameterText = $('.urlParameters').val()
+    urlParameterStrings = urlParameterText.split('\n')
+    for urlParameterString in urlParameterStrings
+        urlParameter = createUrlParameter(urlParameterString)
+        if urlParameter?
+            urlParameters.push(urlParameter)
+    return urlParameters
+
+createUrlParameter = (urlParameterString) ->
+    urlAndScore = urlParameterString.split(/\s+/g)
+    urlAndScorePresent = urlAndScore.length == 2
+    if (urlAndScorePresent)
+        return {
+            url: urlAndScore[0],
+            score: parseFloat(urlAndScore[1])
+        }
+    else
+        return null
+
+sendURLParametersToServer = (urlParameters) ->
+    window.lod.callMethodOnServer(
+        { 
+            method: "setEngineParameters",
+            parameters: [JSON.stringify(urlParameters)],
+            callback: (data) ->
+                $('#queryInput').submit()
+        }
+    )
+
 addSubmitFunctionToQueryForm()
 getMoreResultsOnScrollDown()
 askForFieldWeights()
 checkURLHrefForQueryString()
 enableBrowserHistory()
+changeURLParametersOnLostFocus()

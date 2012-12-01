@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, checkURLHrefForQueryString, clearResultDiv, clearSearch, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, getMoreResults, getMoreResultsOnScrollDown, lod, logQueryInBrowserHistory, noResultsMessage, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, changeURLParametersOnLostFocus, checkURLHrefForQueryString, clearResultDiv, clearSearch, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, createURLParameterLine, createUrlParameter, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, extractUrlParametersOfTextArea, getMoreResults, getMoreResultsOnScrollDown, lod, logQueryInBrowserHistory, noResultsMessage, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, sendURLParametersToServer, showURLParameters, toggleResultsOnScrollDown, unescapeUnicode, updateURLParameters;
 
   canGetMoreResults = false;
 
@@ -122,11 +122,8 @@
     brokenUnicodeEscapeRegExp = /\\u[\d\w]{1,3}_/gi;
     while (title.match(brokenUnicodeEscapeRegExp)) {
       title = title.replace(brokenUnicodeEscapeRegExp, function(match, group) {
-        console.log("broken match: " + group, match, group);
-        console.log("replacing with: " + (match.replace('_', '')));
         return match.replace('_', '');
       });
-      console.log("title after", title);
     }
     return title;
   };
@@ -179,8 +176,30 @@
   askForFieldWeights = function() {
     return window.lod.callMethodOnServer({
       method: "getEngineParameters",
-      callback: function(data) {}
+      callback: function(data) {
+        return showURLParameters(data.domainScores);
+      }
     });
+  };
+
+  showURLParameters = function(urlParameters) {
+    var oldParameterText, oldText, parameterTextBox, urlParameter, urlParametersLine, _i, _len;
+    urlParameters.sort(function(urlParameterA, urlParameterB) {
+      return urlParameterB.score - urlParameterA.score;
+    });
+    for (_i = 0, _len = urlParameters.length; _i < _len; _i++) {
+      urlParameter = urlParameters[_i];
+      parameterTextBox = $('.urlParameters');
+      urlParametersLine = createURLParameterLine(urlParameter);
+      oldParameterText = parameterTextBox.val();
+      parameterTextBox.val("" + oldParameterText + urlParametersLine + "\n");
+    }
+    oldText = parameterTextBox.val();
+    return parameterTextBox.val(oldText.slice(0, oldText.length - 1));
+  };
+
+  createURLParameterLine = function(urlParameter) {
+    return "" + urlParameter.url + "\t" + urlParameter.score;
   };
 
   checkURLHrefForQueryString = function() {
@@ -227,6 +246,55 @@
     return clearResultDiv();
   };
 
+  changeURLParametersOnLostFocus = function() {
+    return $('.urlParameters').blur(updateURLParameters);
+  };
+
+  updateURLParameters = function() {
+    var urlParameters;
+    urlParameters = extractUrlParametersOfTextArea();
+    return sendURLParametersToServer(urlParameters);
+  };
+
+  extractUrlParametersOfTextArea = function() {
+    var urlParameter, urlParameterString, urlParameterStrings, urlParameterText, urlParameters, _i, _len;
+    urlParameters = [];
+    urlParameterText = $('.urlParameters').val();
+    urlParameterStrings = urlParameterText.split('\n');
+    for (_i = 0, _len = urlParameterStrings.length; _i < _len; _i++) {
+      urlParameterString = urlParameterStrings[_i];
+      urlParameter = createUrlParameter(urlParameterString);
+      if (urlParameter != null) {
+        urlParameters.push(urlParameter);
+      }
+    }
+    return urlParameters;
+  };
+
+  createUrlParameter = function(urlParameterString) {
+    var urlAndScore, urlAndScorePresent;
+    urlAndScore = urlParameterString.split(/\s+/g);
+    urlAndScorePresent = urlAndScore.length === 2;
+    if (urlAndScorePresent) {
+      return {
+        url: urlAndScore[0],
+        score: parseFloat(urlAndScore[1])
+      };
+    } else {
+      return null;
+    }
+  };
+
+  sendURLParametersToServer = function(urlParameters) {
+    return window.lod.callMethodOnServer({
+      method: "setEngineParameters",
+      parameters: [JSON.stringify(urlParameters)],
+      callback: function(data) {
+        return $('#queryInput').submit();
+      }
+    });
+  };
+
   addSubmitFunctionToQueryForm();
 
   getMoreResultsOnScrollDown();
@@ -236,5 +304,7 @@
   checkURLHrefForQueryString();
 
   enableBrowserHistory();
+
+  changeURLParametersOnLostFocus();
 
 }).call(this);

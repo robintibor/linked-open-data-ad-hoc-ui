@@ -24,6 +24,6 @@ window.lod.callMethodOnServer = (options) ->
             })
         },
         (data) ->
-            console.log("Response:", data)
+            console.log("Response from server for #{options.method}:", data)
             options.callback(data.result)
     )

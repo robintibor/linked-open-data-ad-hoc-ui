@@ -6,15 +6,13 @@ body {
     text-align:center;
 }
 
-.loadingMonkeyImage {
-    /* center image */
-    margin: auto;
-    display:block;
-}
-
 .container {
     margin-top: 10px;
     width: 80%;
+}
+
+#resultDiv {
+    width: 75%;
 }
 
 .resultTitle {
@@ -72,7 +70,20 @@ body {
     color: green;
 }
 
-.urlParameters{
+
+.engineParameters{
     width: 25%;
     float: right;
+}
+
+.urlParameters {
+    margin-left: 20px;
+    height: 15em;
+}
+
+
+.loadingMonkeyImage {
+    /* center image */
+    margin: auto;
+    display:block;
 }

@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, checkURLHrefForQueryString, clearResultDiv, clearSearch, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, getMoreResults, getMoreResultsOnScrollDown, logQueryInBrowserHistory, noResultsMessage, queryServer, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, checkURLHrefForQueryString, clearResultDiv, clearSearch, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, getMoreResults, getMoreResultsOnScrollDown, lod, logQueryInBrowserHistory, noResultsMessage, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
 
   canGetMoreResults = false;
 
@@ -7,7 +7,7 @@
 
   currentSearch = "";
 
-  config = window.lod;
+  lod = window.lod;
 
   addSubmitFunctionToQueryForm = function() {
     return $('#queryForm').submit(function() {
@@ -33,31 +33,8 @@
     return $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>");
   };
 
-  queryServer = function(queryData, callback) {
-    return $.ajax({
-      url: config.host,
-      data: queryData,
-      dataType: 'jsonp',
-      success: callback
-    });
-  };
-
-  callMethodOnServer = function(options) {
-    return queryServer({
-      type: "JSONRPCCALL",
-      jsonRPCObject: JSON.stringify({
-        jsonrpc: "2.0",
-        method: options.method,
-        params: options.parameters,
-        id: Date.now()
-      })
-    }, function(data) {
-      return options.callback(data.result);
-    });
-  };
-
   sendSearchQueryToServer = function() {
-    return callMethodOnServer({
+    return window.lod.callMethodOnServer({
       method: "querySearchEngine",
       parameters: [currentSearch, currentSearchOffset],
       callback: function(data) {
@@ -200,7 +177,7 @@
   };
 
   askForFieldWeights = function() {
-    return callMethodOnServer({
+    return window.lod.callMethodOnServer({
       method: "getEngineParameters",
       callback: function(data) {}
     });

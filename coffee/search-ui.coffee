@@ -1,7 +1,7 @@
 canGetMoreResults = false
 currentSearchOffset = 0
 currentSearch =  ""
-config = window.lod
+lod = window.lod
     
 addSubmitFunctionToQueryForm = ->
     $('#queryForm').submit(() ->
@@ -24,35 +24,8 @@ clearResultDiv = ->
 addLoadingMonkey = ->
     $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>")
 
-queryServer = (queryData, callback) ->
-    $.ajax(
-        {
-            url: config.host,
-            data: queryData, 
-            dataType: 'jsonp',
-            success: callback
-        }
-    )
-
-callMethodOnServer = (options) ->
-    # Calling the method by using JSON RPC 2.0, see http://www.jsonrpc.org/specification
-    queryServer(
-        {
-            type : "JSONRPCCALL",
-            jsonRPCObject: JSON.stringify({ 
-                # have to stringify JSONRPCObject for some reason.. (?)
-                jsonrpc: "2.0",
-                method : options.method,
-                params : options.parameters,
-                id : Date.now() # hopefully will be unique :) Actually ignoring this parameter so its ok ;)
-            })
-        },
-        (data) ->
-            options.callback(data.result)
-    )
-
 sendSearchQueryToServer = ->
-    callMethodOnServer(
+    window.lod.callMethodOnServer(
         {
             method: "querySearchEngine",
             parameters: [currentSearch, currentSearchOffset],
@@ -170,7 +143,7 @@ atBottomOfPage = ->
 
 
 askForFieldWeights = () ->
-    callMethodOnServer(
+    window.lod.callMethodOnServer(
         { 
             method: "getEngineParameters",
             callback: (data) ->

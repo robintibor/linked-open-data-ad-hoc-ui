@@ -7,6 +7,8 @@
 
   currentSearch = "";
 
+  window.lod = window.lod || {};
+
   lod = window.lod;
 
   addSubmitFunctionToQueryForm = function() {

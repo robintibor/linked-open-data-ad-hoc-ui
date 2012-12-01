@@ -1,6 +1,7 @@
 canGetMoreResults = false
 currentSearchOffset = 0
 currentSearch =  ""
+window.lod = window.lod || {}
 lod = window.lod
     
 addSubmitFunctionToQueryForm = ->

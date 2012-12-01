@@ -87,3 +87,11 @@ body {
     margin: auto;
     display:block;
 }
+
+.monkeyOnTopOfPage {
+    opacity: 0.5;
+    position: fixed;
+    margin-top: -5%; /* because body seems to have some margin on top */
+    width: 100%;
+    height: 105%;
+}

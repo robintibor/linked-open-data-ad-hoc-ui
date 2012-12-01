@@ -23,7 +23,7 @@ clearResultDiv = ->
 
 
 addLoadingMonkey = ->
-    $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>")
+    $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='images/monkey.gif'/>")
 
 sendSearchQueryToServer = ->
     window.lod.callMethodOnServer(
@@ -43,7 +43,7 @@ logQueryInBrowserHistory = () ->
     # in this case the url should already be correct (containt he query string), 
     # and no new state should be pushed!
     if (currentSearch != extractQueryStringFromCurrentLocation())
-        window.History.pushState({queryString:currentSearch}, "Search State", "?query=#{currentSearch}")
+        window.History.pushState({queryString:currentSearch}, "Searching for #{currentSearch}", "?query=#{currentSearch}")
 
 removeLoadingMonkey = ->
     $('#loadingMonkey').remove()
@@ -197,6 +197,7 @@ enableBrowserHistory = () ->
         else if (queryString != currentSearch)
             enterAndSubmitQueryAsUser(queryString)
     )
+
 clearSearch = () ->
     currentSearchOffset = 0
     currentSearch = ""
@@ -237,10 +238,17 @@ sendURLParametersToServer = (urlParameters) ->
             method: "setEngineParameters",
             parameters: [JSON.stringify(urlParameters)],
             callback: (data) ->
-                
+                removeLoadingMonkeyFromTopOfPage()
+                $('#queryInput').submit()
         }
-        $('#queryInput').submit()
+        putLoadingMonkeyOnTopOfPage()
     )
+    
+putLoadingMonkeyOnTopOfPage = ->
+    $('body').prepend('<img src="images/monkey.gif" class="monkeyOnTopOfPage"/>')
+
+removeLoadingMonkeyFromTopOfPage = ->
+    $('.monkeyOnTopOfPage').remove()
 
 addSubmitFunctionToQueryForm()
 getMoreResultsOnScrollDown()

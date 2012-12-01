@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, changeURLParametersOnLostFocus, checkURLHrefForQueryString, clearResultDiv, clearSearch, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, createURLParameterLine, createUrlParameter, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, extractUrlParametersOfTextArea, getMoreResults, getMoreResultsOnScrollDown, lod, logQueryInBrowserHistory, noResultsMessage, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, sendURLParametersToServer, showURLParameters, toggleResultsOnScrollDown, unescapeUnicode, updateURLParameters;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, changeURLParametersOnLostFocus, checkURLHrefForQueryString, clearResultDiv, clearSearch, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, createURLParameterLine, createUrlParameter, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, extractUrlParametersOfTextArea, getMoreResults, getMoreResultsOnScrollDown, lod, logQueryInBrowserHistory, noResultsMessage, putLoadingMonkeyOnTopOfPage, removeLoadingMonkey, removeLoadingMonkeyFromTopOfPage, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, sendURLParametersToServer, showURLParameters, toggleResultsOnScrollDown, unescapeUnicode, updateURLParameters;
 
   canGetMoreResults = false;
 
@@ -32,7 +32,7 @@
   };
 
   addLoadingMonkey = function() {
-    return $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>");
+    return $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='images/monkey.gif'/>");
   };
 
   sendSearchQueryToServer = function() {
@@ -53,7 +53,7 @@
     if (currentSearch !== extractQueryStringFromCurrentLocation()) {
       return window.History.pushState({
         queryString: currentSearch
-      }, "Search State", "?query=" + currentSearch);
+      }, "Searching for " + currentSearch, "?query=" + currentSearch);
     }
   };
 
@@ -291,8 +291,19 @@
     return window.lod.callMethodOnServer({
       method: "setEngineParameters",
       parameters: [JSON.stringify(urlParameters)],
-      callback: function(data) {}
-    }, $('#queryInput').submit());
+      callback: function(data) {
+        removeLoadingMonkeyFromTopOfPage();
+        return $('#queryInput').submit();
+      }
+    }, putLoadingMonkeyOnTopOfPage());
+  };
+
+  putLoadingMonkeyOnTopOfPage = function() {
+    return $('body').prepend('<img src="images/monkey.gif" class="monkeyOnTopOfPage"/>');
+  };
+
+  removeLoadingMonkeyFromTopOfPage = function() {
+    return $('.monkeyOnTopOfPage').remove();
   };
 
   addSubmitFunctionToQueryForm();

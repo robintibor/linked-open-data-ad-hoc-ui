@@ -289,10 +289,8 @@
     return window.lod.callMethodOnServer({
       method: "setEngineParameters",
       parameters: [JSON.stringify(urlParameters)],
-      callback: function(data) {
-        return $('#queryInput').submit();
-      }
-    });
+      callback: function(data) {}
+    }, $('#queryInput').submit());
   };
 
   addSubmitFunctionToQueryForm();

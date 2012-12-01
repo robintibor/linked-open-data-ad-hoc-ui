@@ -235,8 +235,9 @@ sendURLParametersToServer = (urlParameters) ->
             method: "setEngineParameters",
             parameters: [JSON.stringify(urlParameters)],
             callback: (data) ->
-                $('#queryInput').submit()
+                
         }
+        $('#queryInput').submit()
     )
 
 addSubmitFunctionToQueryForm()

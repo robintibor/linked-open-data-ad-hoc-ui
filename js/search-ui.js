@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, clearResultDiv, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, ensureMoreResultsOnScrollDown, getMoreResults, getMoreResultsOnScrollDown, queryServer, removeLoadingMonkey, resetSearchValues, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServer, canGetMoreResults, checkURLHrefForQueryString, clearResultDiv, clearSearch, config, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, getMoreResults, getMoreResultsOnScrollDown, logQueryInBrowserHistory, noResultsMessage, queryServer, removeLoadingMonkey, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, toggleResultsOnScrollDown, unescapeUnicode;
 
   canGetMoreResults = false;
 
@@ -8,6 +8,30 @@
   currentSearch = "";
 
   config = window.lod;
+
+  addSubmitFunctionToQueryForm = function() {
+    return $('#queryForm').submit(function() {
+      resetSearchValues();
+      clearResultDiv();
+      addLoadingMonkey();
+      sendSearchQueryToServer();
+      logQueryInBrowserHistory();
+      return false;
+    });
+  };
+
+  resetSearchValues = function() {
+    currentSearchOffset = 0;
+    return currentSearch = $('#queryInput').val();
+  };
+
+  clearResultDiv = function() {
+    return $('#resultDiv').html('');
+  };
+
+  addLoadingMonkey = function() {
+    return $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>");
+  };
 
   queryServer = function(queryData, callback) {
     return $.ajax({
@@ -28,7 +52,6 @@
         id: Date.now()
       })
     }, function(data) {
-      console.log("Response:", data);
       return options.callback(data.result);
     });
   };
@@ -47,12 +70,23 @@
     });
   };
 
+  logQueryInBrowserHistory = function() {
+    if (currentSearch !== extractQueryStringFromCurrentLocation()) {
+      return window.History.pushState({
+        queryString: currentSearch
+      }, "Search State", "?query=" + currentSearch);
+    }
+  };
+
   removeLoadingMonkey = function() {
     return $('#loadingMonkey').remove();
   };
 
   createResultHTML = function(data) {
     var doc, resultDocumentsHTML, _i, _len, _ref;
+    if (resultHasNoDocuments(data)) {
+      return noResultsMessage();
+    }
     resultDocumentsHTML = "";
     _ref = data.documents;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -62,11 +96,21 @@
     return resultDocumentsHTML;
   };
 
+  resultHasNoDocuments = function(data) {
+    return data.documents.length === 0;
+  };
+
+  noResultsMessage = function() {
+    return "<div class='pagination-centered'>No Results. Try using <a href='http://broccoli.informatik.uni-freiburg.de/'>Broccoli</a> :)</div>";
+  };
+
   createResultHTMLForDocument = function(doc) {
-    var formattedScore, snippetsHTML;
+    var cleanDocTitle, cleanURL, formattedScore, snippetsHTML;
     snippetsHTML = createSnippetsHTML(doc);
     formattedScore = doc.score.toFixed(3);
-    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + doc.url + "'>" + doc.title + "</a></span><span class='resultScore'>" + formattedScore + "</span></div>            <div class='resultURL'><a href='" + doc.url + "'>" + doc.url + "</a></div>            " + snippetsHTML + "            </div>";
+    cleanDocTitle = unescapeUnicode(restoreUniCodeEscapeSequences(doc.title));
+    cleanURL = unescapeUnicode(doc.url);
+    return "<div class='oneResult'>            <div class='resultHeader'><span class='resultTitle'><a href='" + cleanURL + "'>" + cleanDocTitle + "</a></span><span class='resultScore'>" + formattedScore + "</span></div>            <div class='resultURL'><a href='" + cleanURL + "'>" + cleanURL + "</a></div>            " + snippetsHTML + "            </div>";
   };
 
   createSnippetsHTML = function(doc) {
@@ -94,6 +138,20 @@
     });
     text = unescape(text);
     return text;
+  };
+
+  restoreUniCodeEscapeSequences = function(title) {
+    var brokenUnicodeEscapeRegExp;
+    brokenUnicodeEscapeRegExp = /\\u[\d\w]{1,3}_/gi;
+    while (title.match(brokenUnicodeEscapeRegExp)) {
+      title = title.replace(brokenUnicodeEscapeRegExp, function(match, group) {
+        console.log("broken match: " + group, match, group);
+        console.log("replacing with: " + (match.replace('_', '')));
+        return match.replace('_', '');
+      });
+      console.log("title after", title);
+    }
+    return title;
   };
 
   addResultHTMLToResultDiv = function(resultHTML) {
@@ -141,36 +199,55 @@
     return totalHeight - (visibleHeight + currentScroll) <= 100;
   };
 
-  addSubmitFunctionToQueryForm = function() {
-    return $('#queryForm').submit(function() {
-      resetSearchValues();
-      clearResultDiv();
-      addLoadingMonkey();
-      sendSearchQueryToServer();
-      return false;
-    });
-  };
-
-  resetSearchValues = function() {
-    currentSearchOffset = 0;
-    return currentSearch = $('#queryInput').val();
-  };
-
-  clearResultDiv = function() {
-    return $('#resultDiv').html('');
-  };
-
-  addLoadingMonkey = function() {
-    return $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>");
-  };
-
   askForFieldWeights = function() {
     return callMethodOnServer({
       method: "getEngineParameters",
-      callback: function(data) {
-        return console.log("parameters: " + (JSON.stringify(data)));
+      callback: function(data) {}
+    });
+  };
+
+  checkURLHrefForQueryString = function() {
+    var queryString;
+    queryString = extractQueryStringFromCurrentLocation();
+    if ((queryString != null) && queryString !== "") {
+      return enterAndSubmitQueryAsUser(queryString);
+    }
+  };
+
+  extractQueryStringFromCurrentLocation = function() {
+    var possibleQueryString, queryString;
+    possibleQueryString = window.location.href.match(/query=([^&]*)/);
+    if ((possibleQueryString != null) && possibleQueryString.length === 2) {
+      queryString = window.location.href.match(/query=([^&]*)/)[1];
+      queryString = unescape(queryString);
+    }
+    return queryString;
+  };
+
+  enterAndSubmitQueryAsUser = function(queryString) {
+    return $('#queryInput').val(queryString).submit();
+  };
+
+  enableBrowserHistory = function() {
+    var History;
+    History = window.History;
+    return History.Adapter.bind(window, 'statechange', function() {
+      var State, queryString;
+      State = History.getState();
+      queryString = extractQueryStringFromCurrentLocation();
+      if (!queryString) {
+        return clearSearch();
+      } else if (queryString !== currentSearch) {
+        return enterAndSubmitQueryAsUser(queryString);
       }
     });
+  };
+
+  clearSearch = function() {
+    currentSearchOffset = 0;
+    currentSearch = "";
+    $('#queryInput').val('');
+    return clearResultDiv();
   };
 
   addSubmitFunctionToQueryForm();
@@ -178,5 +255,9 @@
   getMoreResultsOnScrollDown();
 
   askForFieldWeights();
+
+  checkURLHrefForQueryString();
+
+  enableBrowserHistory();
 
 }).call(this);

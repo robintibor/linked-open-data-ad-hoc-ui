@@ -1,7 +1,7 @@
 canGetMoreResults = false
 currentSearchOffset = 0
 currentSearch =  ""
-config = window.lod
+lod = window.lod
     
 addSubmitFunctionToQueryForm = ->
     $('#queryForm').submit(() ->
@@ -24,35 +24,8 @@ clearResultDiv = ->
 addLoadingMonkey = ->
     $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='http://thedancingmonkey.webs.com/monkey.gif'/>")
 
-queryServer = (queryData, callback) ->
-    $.ajax(
-        {
-            url: config.host,
-            data: queryData, 
-            dataType: 'jsonp',
-            success: callback
-        }
-    )
-
-callMethodOnServer = (options) ->
-    # Calling the method by using JSON RPC 2.0, see http://www.jsonrpc.org/specification
-    queryServer(
-        {
-            type : "JSONRPCCALL",
-            jsonRPCObject: JSON.stringify({ 
-                # have to stringify JSONRPCObject for some reason.. (?)
-                jsonrpc: "2.0",
-                method : options.method,
-                params : options.parameters,
-                id : Date.now() # hopefully will be unique :) Actually ignoring this parameter so its ok ;)
-            })
-        },
-        (data) ->
-            options.callback(data.result)
-    )
-
 sendSearchQueryToServer = ->
-    callMethodOnServer(
+    window.lod.callMethodOnServer(
         {
             method: "querySearchEngine",
             parameters: [currentSearch, currentSearchOffset],
@@ -127,11 +100,8 @@ restoreUniCodeEscapeSequences = (title) ->
     while (title.match(brokenUnicodeEscapeRegExp))
         title = title.replace(brokenUnicodeEscapeRegExp,
             (match, group) ->
-                console.log("broken match: #{group}", match, group)
-                console.log("replacing with: #{match.replace('_', '')}")
                 return match.replace('_', '')
         )
-        console.log("title after", title)
     return title
 
 addResultHTMLToResultDiv = (resultHTML) ->
@@ -170,13 +140,31 @@ atBottomOfPage = ->
 
 
 askForFieldWeights = () ->
-    callMethodOnServer(
+    window.lod.callMethodOnServer(
         { 
             method: "getEngineParameters",
             callback: (data) ->
-                #console.log("parameters: #{JSON.stringify(data)}")
+               showURLParameters(data.domainScores)
         }
     )
+
+showURLParameters = (urlParameters) ->
+    # sort url parameters by score descending :)
+    urlParameters.sort((urlParameterA, urlParameterB) -> 
+        urlParameterB.score - urlParameterA.score
+        )
+        
+    for urlParameter in urlParameters
+        parameterTextBox = $('.urlParameters')
+        urlParametersLine = createURLParameterLine(urlParameter)
+        oldParameterText = parameterTextBox.val()
+        parameterTextBox.val("#{oldParameterText}#{urlParametersLine}\n")
+    # remove last newLine
+    oldText = parameterTextBox.val()
+    parameterTextBox.val(oldText[0...oldText.length - 1])
+
+createURLParameterLine = (urlParameter) ->
+    return "#{urlParameter.url}\t#{urlParameter.score}"
 
 checkURLHrefForQueryString = () ->
     # querystring should be like query=testQueryString :)
@@ -208,15 +196,54 @@ enableBrowserHistory = () ->
         else if (queryString != currentSearch)
             enterAndSubmitQueryAsUser(queryString)
     )
-
 clearSearch = () ->
     currentSearchOffset = 0
     currentSearch = ""
     $('#queryInput').val('')
     clearResultDiv()
 
+changeURLParametersOnLostFocus = ->
+    $('.urlParameters').blur(updateURLParameters)
+
+updateURLParameters = ->
+    urlParameters = extractUrlParametersOfTextArea()
+    sendURLParametersToServer(urlParameters)
+
+extractUrlParametersOfTextArea = ->
+    urlParameters = []
+    urlParameterText = $('.urlParameters').val()
+    urlParameterStrings = urlParameterText.split('\n')
+    for urlParameterString in urlParameterStrings
+        urlParameter = createUrlParameter(urlParameterString)
+        if urlParameter?
+            urlParameters.push(urlParameter)
+    return urlParameters
+
+createUrlParameter = (urlParameterString) ->
+    urlAndScore = urlParameterString.split(/\s+/g)
+    urlAndScorePresent = urlAndScore.length == 2
+    if (urlAndScorePresent)
+        return {
+            url: urlAndScore[0],
+            score: parseFloat(urlAndScore[1])
+        }
+    else
+        return null
+
+sendURLParametersToServer = (urlParameters) ->
+    window.lod.callMethodOnServer(
+        { 
+            method: "setEngineParameters",
+            parameters: [JSON.stringify(urlParameters)],
+            callback: (data) ->
+                
+        }
+        $('#queryInput').submit()
+    )
+
 addSubmitFunctionToQueryForm()
 getMoreResultsOnScrollDown()
 askForFieldWeights()
 checkURLHrefForQueryString()
 enableBrowserHistory()
+changeURLParametersOnLostFocus()

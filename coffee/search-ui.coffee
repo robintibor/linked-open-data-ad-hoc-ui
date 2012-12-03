@@ -146,6 +146,7 @@ askForFieldWeights = () ->
             method: "getEngineParameters",
             callback: (data) ->
                showURLParameters(data.domainScores)
+               showFieldWeights(data.fieldWeights)
         }
     )
 
@@ -163,6 +164,14 @@ showURLParameters = (urlParameters) ->
     # remove last newLine
     oldText = parameterTextBox.val()
     parameterTextBox.val(oldText[0...oldText.length - 1])
+
+showFieldWeights = (fieldWeights) ->
+    for own fieldName, weight of fieldWeights
+        showFieldWeight(fieldName, weight)
+
+showFieldWeight = (fieldName, weight) ->
+    fieldBox = $("##{fieldName}Parameter")
+    fieldBox.val(weight)
 
 createURLParameterLine = (urlParameter) ->
     return "#{urlParameter.url}\t#{urlParameter.score}"
@@ -249,6 +258,9 @@ putLoadingMonkeyOnTopOfPage = ->
 
 removeLoadingMonkeyFromTopOfPage = ->
     $('.monkeyOnTopOfPage').remove()
+    
+changeFieldWeightsOnLostFocus = ->
+    $('.fieldParameter').blur(updateFieldWeights)
 
 addSubmitFunctionToQueryForm()
 getMoreResultsOnScrollDown()
@@ -256,3 +268,4 @@ askForFieldWeights()
 checkURLHrefForQueryString()
 enableBrowserHistory()
 changeURLParametersOnLostFocus()
+changeFieldWeightsOnLostFocus()

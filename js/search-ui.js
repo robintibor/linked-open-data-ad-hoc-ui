@@ -1,5 +1,6 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, changeURLParametersOnLostFocus, checkURLHrefForQueryString, clearResultDiv, clearSearch, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, createURLParameterLine, createUrlParameter, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, extractUrlParametersOfTextArea, getMoreResults, getMoreResultsOnScrollDown, lod, logQueryInBrowserHistory, noResultsMessage, putLoadingMonkeyOnTopOfPage, removeLoadingMonkey, removeLoadingMonkeyFromTopOfPage, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, sendURLParametersToServer, showURLParameters, toggleResultsOnScrollDown, unescapeUnicode, updateURLParameters;
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, changeFieldWeightsOnLostFocus, changeURLParametersOnLostFocus, checkURLHrefForQueryString, clearResultDiv, clearSearch, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, createURLParameterLine, createUrlParameter, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, extractUrlParametersOfTextArea, getMoreResults, getMoreResultsOnScrollDown, lod, logQueryInBrowserHistory, noResultsMessage, putLoadingMonkeyOnTopOfPage, removeLoadingMonkey, removeLoadingMonkeyFromTopOfPage, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, sendURLParametersToServer, showFieldWeight, showFieldWeights, showURLParameters, toggleResultsOnScrollDown, unescapeUnicode, updateURLParameters,
+    __hasProp = {}.hasOwnProperty;
 
   canGetMoreResults = false;
 
@@ -179,7 +180,8 @@
     return window.lod.callMethodOnServer({
       method: "getEngineParameters",
       callback: function(data) {
-        return showURLParameters(data.domainScores);
+        showURLParameters(data.domainScores);
+        return showFieldWeights(data.fieldWeights);
       }
     });
   };
@@ -198,6 +200,23 @@
     }
     oldText = parameterTextBox.val();
     return parameterTextBox.val(oldText.slice(0, oldText.length - 1));
+  };
+
+  showFieldWeights = function(fieldWeights) {
+    var fieldName, weight, _results;
+    _results = [];
+    for (fieldName in fieldWeights) {
+      if (!__hasProp.call(fieldWeights, fieldName)) continue;
+      weight = fieldWeights[fieldName];
+      _results.push(showFieldWeight(fieldName, weight));
+    }
+    return _results;
+  };
+
+  showFieldWeight = function(fieldName, weight) {
+    var fieldBox;
+    fieldBox = $("#" + fieldName + "Parameter");
+    return fieldBox.val(weight);
   };
 
   createURLParameterLine = function(urlParameter) {
@@ -306,6 +325,10 @@
     return $('.monkeyOnTopOfPage').remove();
   };
 
+  changeFieldWeightsOnLostFocus = function() {
+    return $('.fieldParameter').blur(updateFieldWeights);
+  };
+
   addSubmitFunctionToQueryForm();
 
   getMoreResultsOnScrollDown();
@@ -317,5 +340,7 @@
   enableBrowserHistory();
 
   changeURLParametersOnLostFocus();
+
+  changeFieldWeightsOnLostFocus();
 
 }).call(this);

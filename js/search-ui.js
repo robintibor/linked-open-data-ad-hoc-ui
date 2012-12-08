@@ -1,5 +1,5 @@
 (function() {
-  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, canGetMoreResults, changeFieldWeightsOnLostFocus, changeURLParametersOnLostFocus, checkURLHrefForQueryString, clearResultDiv, clearSearch, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, createURLParameterLine, createUrlParameter, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractQueryStringFromCurrentLocation, extractUrlParametersOfTextArea, getMoreResults, getMoreResultsOnScrollDown, lod, logQueryInBrowserHistory, noResultsMessage, putLoadingMonkeyOnTopOfPage, removeLoadingMonkey, removeLoadingMonkeyFromTopOfPage, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendSearchQueryToServer, sendURLParametersToServer, showFieldWeight, showFieldWeights, showURLParameters, toggleResultsOnScrollDown, unescapeUnicode, updateURLParameters,
+  var addLoadingMonkey, addResultHTMLToResultDiv, addSubmitFunctionToQueryForm, askForFieldWeights, atBottomOfPage, callMethodOnServerAndRepeatSearchOnResponse, canGetMoreResults, changeFieldWeightsOnLostFocus, changeURLParametersOnLostFocus, checkURLHrefForQueryString, clearResultDiv, clearSearch, createResultHTML, createResultHTMLForDocument, createSnippetHTML, createSnippetsHTML, createURLParameterLine, createUrlParameter, currentSearch, currentSearchOffset, disableMoreResultsOnScrollDown, enableBrowserHistory, ensureMoreResultsOnScrollDown, enterAndSubmitQueryAsUser, extractFieldWeights, extractQueryStringFromCurrentLocation, extractUrlParametersOfTextArea, getMoreResults, getMoreResultsOnScrollDown, lod, logQueryInBrowserHistory, noResultsMessage, putLoadingMonkeyOnTopOfPage, removeLoadingMonkey, removeLoadingMonkeyFromTopOfPage, resetSearchValues, restoreUniCodeEscapeSequences, resultHasNoDocuments, sendFieldWeightsToServer, sendSearchQueryToServer, sendURLParametersToServer, showFieldWeight, showFieldWeights, showURLParameters, submitCurrentlyEnteredQuery, toggleResultsOnScrollDown, unescapeUnicode, updateFieldWeights, updateURLParameters,
     __hasProp = {}.hasOwnProperty;
 
   canGetMoreResults = false;
@@ -13,14 +13,16 @@
   lod = window.lod;
 
   addSubmitFunctionToQueryForm = function() {
-    return $('#queryForm').submit(function() {
-      resetSearchValues();
-      clearResultDiv();
-      addLoadingMonkey();
-      sendSearchQueryToServer();
-      logQueryInBrowserHistory();
-      return false;
-    });
+    return $('#queryForm').submit(submitCurrentlyEnteredQuery);
+  };
+
+  submitCurrentlyEnteredQuery = function() {
+    resetSearchValues();
+    clearResultDiv();
+    addLoadingMonkey();
+    sendSearchQueryToServer();
+    logQueryInBrowserHistory();
+    return false;
   };
 
   resetSearchValues = function() {
@@ -307,14 +309,24 @@
   };
 
   sendURLParametersToServer = function(urlParameters) {
-    return window.lod.callMethodOnServer({
-      method: "setEngineParameters",
-      parameters: [JSON.stringify(urlParameters)],
+    return callMethodOnServerAndRepeatSearchOnResponse({
+      method: "setDomainWeights",
+      parameters: [JSON.stringify(urlParameters)]
+    });
+  };
+
+  callMethodOnServerAndRepeatSearchOnResponse = function(options) {
+    window.lod.callMethodOnServer({
+      method: options.method,
+      parameters: options.parameters,
       callback: function(data) {
         removeLoadingMonkeyFromTopOfPage();
-        return $('#queryInput').submit();
+        if (currentSearch !== '') {
+          return submitCurrentlyEnteredQuery();
+        }
       }
-    }, putLoadingMonkeyOnTopOfPage());
+    });
+    return putLoadingMonkeyOnTopOfPage();
   };
 
   putLoadingMonkeyOnTopOfPage = function() {
@@ -327,6 +339,28 @@
 
   changeFieldWeightsOnLostFocus = function() {
     return $('.fieldParameter').blur(updateFieldWeights);
+  };
+
+  updateFieldWeights = function() {
+    var fieldWeights;
+    fieldWeights = extractFieldWeights();
+    return sendFieldWeightsToServer(fieldWeights);
+  };
+
+  extractFieldWeights = function() {
+    return {
+      title: parseFloat($('#titleParameter').val()),
+      important: parseFloat($('#importantParameter').val()),
+      neutral: parseFloat($('#neutralParameter').val()),
+      unimportant: parseFloat($('#unimportantParameter').val())
+    };
+  };
+
+  sendFieldWeightsToServer = function(fieldWeights) {
+    return callMethodOnServerAndRepeatSearchOnResponse({
+      method: "setFieldWeights",
+      parameters: [JSON.stringify(fieldWeights)]
+    });
   };
 
   addSubmitFunctionToQueryForm();

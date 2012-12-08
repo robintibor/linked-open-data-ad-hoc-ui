@@ -5,14 +5,15 @@ window.lod = window.lod || {}
 lod = window.lod
     
 addSubmitFunctionToQueryForm = ->
-    $('#queryForm').submit(() ->
-        resetSearchValues()
-        clearResultDiv()
-        addLoadingMonkey()
-        sendSearchQueryToServer()
-        logQueryInBrowserHistory()
-        return false
-    )
+    $('#queryForm').submit(submitCurrentlyEnteredQuery)
+
+submitCurrentlyEnteredQuery = ->
+    resetSearchValues()
+    clearResultDiv()
+    addLoadingMonkey()
+    sendSearchQueryToServer()
+    logQueryInBrowserHistory()
+    return false # submit finished, prevent reloading of page :)
 
 resetSearchValues = ->
     currentSearchOffset = 0
@@ -20,7 +21,6 @@ resetSearchValues = ->
 
 clearResultDiv = ->
     $('#resultDiv').html('')
-
 
 addLoadingMonkey = ->
     $('#resultDiv').append("<img id='loadingMonkey' class='loadingMonkeyImage' src='images/monkey.gif'/>")
@@ -139,7 +139,6 @@ atBottomOfPage = ->
     visibleHeight = window.innerHeight
     return totalHeight - (visibleHeight + currentScroll)  <= 100 
 
-
 askForFieldWeights = () ->
     window.lod.callMethodOnServer(
         { 
@@ -242,17 +241,26 @@ createUrlParameter = (urlParameterString) ->
         return null
 
 sendURLParametersToServer = (urlParameters) ->
-    window.lod.callMethodOnServer(
-        { 
-            method: "setEngineParameters",
-            parameters: [JSON.stringify(urlParameters)],
-            callback: (data) ->
-                removeLoadingMonkeyFromTopOfPage()
-                $('#queryInput').submit()
+    callMethodOnServerAndRepeatSearchOnResponse(
+        {
+                method: "setDomainWeights",
+                parameters: [JSON.stringify(urlParameters)],
         }
-        putLoadingMonkeyOnTopOfPage()
     )
-    
+        
+callMethodOnServerAndRepeatSearchOnResponse = (options) ->
+        window.lod.callMethodOnServer(
+            {
+                method: options.method,
+                parameters: options.parameters,
+                callback: (data) ->
+                    removeLoadingMonkeyFromTopOfPage()
+                    if (currentSearch != '')
+                        submitCurrentlyEnteredQuery()
+            }
+        )
+        putLoadingMonkeyOnTopOfPage()
+
 putLoadingMonkeyOnTopOfPage = ->
     $('body').prepend('<img src="images/monkey.gif" class="monkeyOnTopOfPage"/>')
 
@@ -261,7 +269,27 @@ removeLoadingMonkeyFromTopOfPage = ->
     
 changeFieldWeightsOnLostFocus = ->
     $('.fieldParameter').blur(updateFieldWeights)
+    
+updateFieldWeights = ->
+    fieldWeights = extractFieldWeights()
+    sendFieldWeightsToServer(fieldWeights)
 
+extractFieldWeights = ->
+    return {
+        title: parseFloat($('#titleParameter').val()),
+        important: parseFloat($('#importantParameter').val()),
+        neutral: parseFloat($('#neutralParameter').val()),
+        unimportant: parseFloat($('#unimportantParameter').val())
+    }
+
+sendFieldWeightsToServer = (fieldWeights) ->
+    callMethodOnServerAndRepeatSearchOnResponse(
+        {
+                method: "setFieldWeights",
+                parameters: [JSON.stringify(fieldWeights)],
+        }
+    )
+    
 addSubmitFunctionToQueryForm()
 getMoreResultsOnScrollDown()
 askForFieldWeights()
